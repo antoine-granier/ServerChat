@@ -6,9 +6,26 @@ import java.net.Socket;
 
 public class Connection extends Thread {
     private final Socket socket;
+    private BufferedReader bufferedReader = null;
+    private DataOutputStream outputStream = null;
 
-    public Connection(Socket socket) {
+    public Connection(Socket socket) throws IOException {
         this.socket = socket;
+        try {
+            bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            outputStream = new DataOutputStream(socket.getOutputStream());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    public void sendMessage(String message) throws IOException {
+        outputStream.writeBytes(message + "\n");
+    }
+
+    public Socket getSocket() {
+        return socket;
     }
 
     public void interrupt() {
@@ -22,31 +39,21 @@ public class Connection extends Thread {
 
     public void run() {
         try {
-            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            DataOutputStream outputStream = new DataOutputStream(socket.getOutputStream());
             while (true) {
                 String command = bufferedReader.readLine();
                 if (command.split(" : ")[1].equals("exit")) {
                     System.out.println("Disconnected    ");
                     //socket.close();
                     break;
-                }
-                if(command.split(" : ")[1] != null || !command.split(" : ")[1].equals("")) {
-                    outputStream.writeBytes("OK : " + command + "\n");
-                    System.out.println(command);
+                }else if(command.split(" : ")[1] != null || !command.split(" : ")[1].equals("")) {
+                    Server.sendMessage(socket, command);
+                    //outputStream.writeBytes("OK : " + command + "\n");
+                    //System.out.println(command);
                 }
             }
         } catch (IOException e) {
-            Thread.currentThread().interrupt();
+            this.interrupt();
             e.printStackTrace();
-        } finally {
-            try {
-                if(!socket.isClosed()) {
-                    socket.close();
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
         }
     }
 }

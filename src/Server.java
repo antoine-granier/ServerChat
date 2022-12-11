@@ -22,5 +22,13 @@ public class Server {
             e.printStackTrace();
         }
     }
+
+    public static void sendMessage(Socket socket, String message) throws IOException {
+        for(Connection connection: connections) {
+            if(!connection.getSocket().equals(socket)) {
+                connection.sendMessage(message);
+            }
+        }
+    }
 }
 

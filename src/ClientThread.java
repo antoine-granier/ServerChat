@@ -27,13 +27,12 @@ public class ClientThread extends Thread {
     @Override
     public void run() {
         try {
-            while (true) {
+            while (!socket.isClosed()) {
                 String response = bufferedReader.readLine();
                 System.out.println(response);
             }
         } catch (IOException e) {
-            Thread.currentThread().interrupt();
-            e.printStackTrace();
+            this.interrupt();
         } finally {
             try {
                 if(!socket.isClosed()) {
